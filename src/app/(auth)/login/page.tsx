@@ -19,8 +19,8 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('cfo');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('pdhfinace10832');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,7 +77,7 @@ export default function LoginPage() {
 
   const handleQuickLogin = (userType: 'admin' | 'cfo' | 'finance' | 'budget' | 'auditor') => {
     setUsername(userType);
-    setPassword('password123');
+    setPassword(userType === 'admin' ? 'pdhfinace10832' : 'password123');
     setError(null);
   };
 
@@ -251,7 +251,7 @@ export default function LoginPage() {
                 }`}
               >
                 <div className="font-bold">Super Admin</div>
-                <div className="text-[11px] text-gray-500">admin / ผู้ดูแลระบบ</div>
+                <div className="text-[11px] text-gray-500">admin / pdhfinace10832</div>
               </button>
 
               <button

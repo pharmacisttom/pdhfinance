@@ -1,9 +1,11 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api-response';
-import { generateSessionToken, setSessionCookie } from '@/lib/auth';
+import { generateSessionToken, setSessionCookie, verifyPassword } from '@/lib/auth';
 import { store } from '@/lib/data-store';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
-// Demo users with roles
+// Demo users with roles (Fallback)
 const USER_ACCOUNTS: Record<string, { id: string; username: string; email: string; fullName: string; role: string; departmentId: string; departmentName: string; position: string }> = {
   admin: {
     id: 'usr-admin',
@@ -67,10 +69,73 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const user = USER_ACCOUNTS[cleanUsername] || Object.values(USER_ACCOUNTS).find(u => u.email.toLowerCase() === cleanUsername);
+    let authUser: any = null;
+    let isPasswordValid = false;
 
-    // Standard password check (accepts password123 or matches demo users)
-    if (!user || (password !== 'password123' && password !== 'admin123' && password !== 'cfo123' && password !== 'finance123')) {
+    // 1. Try checking against MySQL Database via Prisma
+    try {
+      const dbUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: cleanUsername },
+            { email: cleanUsername },
+          ],
+        },
+        include: {
+          role: true,
+          department: true,
+        },
+      });
+
+      if (dbUser) {
+        // Verify bcrypt password from DB, or match pdhfinace10832 / password123
+        const passwordMatches = await bcrypt.compare(password, dbUser.passwordHash);
+        if (passwordMatches || password === 'pdhfinace10832' || password === 'password123') {
+          isPasswordValid = true;
+          authUser = {
+            id: dbUser.id,
+            username: dbUser.username,
+            email: dbUser.email,
+            fullName: dbUser.fullName,
+            role: dbUser.role?.code || 'ADMIN',
+            departmentId: dbUser.departmentId,
+            departmentName: dbUser.department?.name,
+            position: dbUser.position,
+          };
+
+          // Update last login in MySQL
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              lastLoginAt: new Date(),
+              lastLoginIp: req.ip || '127.0.0.1',
+              failedLoginAttempts: 0,
+            },
+          });
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Prisma DB query failed, falling back to local store:', dbErr);
+    }
+
+    // 2. Fallback to in-memory store if not verified via DB
+    if (!authUser) {
+      const fallbackUser = USER_ACCOUNTS[cleanUsername] || Object.values(USER_ACCOUNTS).find(u => u.email.toLowerCase() === cleanUsername);
+      if (fallbackUser) {
+        if (
+          password === 'pdhfinace10832' ||
+          password === 'password123' ||
+          password === 'admin123' ||
+          password === 'cfo123' ||
+          password === 'finance123'
+        ) {
+          isPasswordValid = true;
+          authUser = fallbackUser;
+        }
+      }
+    }
+
+    if (!isPasswordValid || !authUser) {
       // Log failed attempt in audit
       store.logAudit({
         username: cleanUsername,
@@ -92,20 +157,20 @@ export async function POST(req: NextRequest) {
 
     // Log Successful Login
     store.logAudit({
-      userId: user.id,
-      username: user.username,
-      role: user.role,
+      userId: authUser.id,
+      username: authUser.username,
+      role: authUser.role,
       action: 'LOGIN',
       module: 'AUTH',
       entity: 'User',
-      entityId: user.id,
+      entityId: authUser.id,
       beforeData: null,
       afterData: { status: 'SUCCESS', ip: req.ip || '127.0.0.1' },
       ipAddress: req.ip || '127.0.0.1',
     });
 
     return apiSuccess({
-      user,
+      user: authUser,
       sessionToken,
     });
   } catch (err: any) {

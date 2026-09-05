@@ -96,11 +96,12 @@ async function main() {
 
   // 5. Users
   const passwordHash = await bcrypt.hash('password123', 10);
+  const adminPasswordHash = await bcrypt.hash('pdhfinace10832', 10);
   const users = [
     {
       username: 'admin',
       email: 'admin@hospital.moph.go.th',
-      passwordHash,
+      passwordHash: adminPasswordHash,
       fullName: 'ผู้ดูแลระบบสูงสุด (Super Administrator)',
       roleId: roleMap['SUPER_ADMIN'],
       departmentId: deptMap['ADMIN'],
