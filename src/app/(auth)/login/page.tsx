@@ -20,7 +20,7 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('pdhfinace10832');
+  const [password, setPassword] = useState('pdhfinance10832');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,8 +77,10 @@ export default function LoginPage() {
 
   const handleQuickLogin = (userType: 'admin' | 'cfo' | 'finance' | 'budget' | 'auditor') => {
     setUsername(userType);
-    setPassword(userType === 'admin' ? 'pdhfinace10832' : 'password123');
+    setPassword(userType === 'admin' ? 'pdhfinance10832' : 'password123');
     setError(null);
+    setFailedAttempts(0);
+    setCaptchaAnswer('');
   };
 
   return (
@@ -251,7 +253,7 @@ export default function LoginPage() {
                 }`}
               >
                 <div className="font-bold">Super Admin</div>
-                <div className="text-[11px] text-gray-500">admin / pdhfinace10832</div>
+                <div className="text-[11px] text-gray-500">admin / pdhfinance10832</div>
               </button>
 
               <button

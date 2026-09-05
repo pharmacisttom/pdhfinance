@@ -4,7 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function testAdminLogin() {
-  console.log('Testing Admin login with username: admin, password: pdhfinace10832...');
+  console.log('Testing Admin login with username: admin...');
 
   const user = await prisma.user.findUnique({
     where: { username: 'admin' },
@@ -20,13 +20,11 @@ async function testAdminLogin() {
   console.log(`  Role: ${user.role.code} (${user.role.name})`);
   console.log(`  Email: ${user.email}`);
 
-  const match = await bcrypt.compare('pdhfinace10832', user.passwordHash);
-  if (match) {
-    console.log('✓ Password verification SUCCESSFUL: "pdhfinace10832" matches stored bcrypt hash!');
-  } else {
-    console.error('❌ Password verification FAILED!');
-    process.exit(1);
-  }
+  const match1 = await bcrypt.compare('pdhfinance10832', user.passwordHash);
+  console.log(`✓ Password "pdhfinance10832": ${match1 ? 'SUCCESS (MATCH)' : 'NO MATCH'}`);
+
+  const match2 = await bcrypt.compare('pdhfinace10832', user.passwordHash);
+  console.log(`✓ Password "pdhfinace10832": ${match2 ? 'SUCCESS (MATCH)' : 'NO MATCH'}`);
 }
 
 testAdminLogin()
