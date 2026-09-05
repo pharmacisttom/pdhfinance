@@ -1,0 +1,749 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// USER & RBAC
+// ------------------------------------------------------------
+
+model User {
+  id                   String            @id @default(cuid())
+  username             String            @unique
+  email                String            @unique
+  passwordHash         String
+  fullName             String
+  position             String?
+  phone                String?
+  departmentId         String?
+  roleId               String
+  status               String            @default("ACTIVE") // ACTIVE, INACTIVE, LOCKED
+  forceChangePassword  Boolean           @default(false)
+  failedLoginAttempts  Int               @default(0)
+  lockedUntil          DateTime?
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  department           Department?       @relation(fields: [departmentId], references: [id])
+  role                 Role              @relation(fields: [roleId], references: [id])
+  sessions             Session[]
+  loginHistories       LoginHistory[]
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+
+  @@index([roleId])
+  @@index([departmentId])
+  @@index([status])
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  code        String           @unique // SUPER_ADMIN, ADMIN, CFO, FINANCE, ACCOUNTING, BUDGET, REVENUE, AUDITOR, EXECUTIVE, VIEWER
+  name        String
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique // e.g. receivable.view, receivable.create
+  module      String
+  action      String
+  description String?
+  createdAt   DateTime         @default(now())
+
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  ipAddress    String?
+  userAgent    String?  @db.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+}
+
+model LoginHistory {
+  id            String   @id @default(cuid())
+  userId        String?
+  username      String
+  ipAddress     String?
+  userAgent     String?  @db.Text
+  status        String   // SUCCESS, FAILED, LOCKED
+  failureReason String?
+  createdAt     DateTime @default(now())
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([username])
+  @@index([createdAt])
+}
+
+// ------------------------------------------------------------
+// MASTER DATA
+// ------------------------------------------------------------
+
+model Department {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  name        String
+  type        String?      // MEDICAL, ADMINISTRATION, FINANCE, SUPPORT
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  users       User[]
+  budgets     Budget[]
+  receivables Receivable[]
+  payables    Payable[]
+  loans       GovernmentLoan[]
+  commitments Commitment[]
+}
+
+model Fund {
+  id                  String               @id @default(cuid())
+  code                String               @unique
+  name                String
+  description         String?
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  budgets             Budget[]
+  payables            Payable[]
+  revenueTransactions RevenueTransaction[]
+}
+
+model Program {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  projects    Project[]
+  budgets     Budget[]
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  programId   String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  program     Program   @relation(fields: [programId], references: [id])
+  budgets     Budget[]
+
+  @@index([programId])
+}
+
+model BudgetCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  category    String    // PERSONNEL, OPERATING, INVESTMENT, SUBSIDY, OTHER
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  budgets     Budget[]
+}
+
+model Debtor {
+  id          String       @id @default(cuid())
+  debtorCode  String       @unique
+  debtorName  String
+  taxId       String?
+  address     String?      @db.Text
+  phone       String?
+  email       String?
+  category    String       // UC, SSS, CSMBS, DIRECT_PAY, PRIVATE_INSURANCE, OTHER
+  creditLimit Decimal      @default(0.00) @db.Decimal(15, 2)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  receivables Receivable[]
+}
+
+model Vendor {
+  id                String       @id @default(cuid())
+  vendorCode        String       @unique
+  vendorName        String
+  taxId             String?
+  address           String?      @db.Text
+  phone             String?
+  email             String?
+  bankName          String?
+  bankAccountNumber String?
+  category          String       // DRUG, MEDICAL_SUPPLY, EQUIPMENT, CONSTRUCTION, SERVICE, GENERAL
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  payables          Payable[]
+  commitments       Commitment[]
+}
+
+// ------------------------------------------------------------
+// CASH & BANK
+// ------------------------------------------------------------
+
+model BankAccount {
+  id             String            @id @default(cuid())
+  bankCode       String            // KTB, SCB, BBL, KBANK, GSB, etc.
+  bankName       String
+  branch         String?
+  accountName    String
+  accountNumber  String            @unique
+  accountType    String            // CURRENT, SAVINGS, FIXED
+  openingBalance Decimal           @default(0.00) @db.Decimal(15, 2)
+  currentBalance Decimal           @default(0.00) @db.Decimal(15, 2)
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  transactions   BankTransaction[]
+  statements     BankStatement[]
+  reconciliations BankReconciliation[]
+  receivablePayments ReceivablePayment[]
+  payablePayments    PayablePayment[]
+  revenueTransactions RevenueTransaction[]
+}
+
+model BankTransaction {
+  id              String         @id @default(cuid())
+  bankAccountId   String
+  transactionDate DateTime
+  transactionType String         // INCOME, EXPENSE, TRANSFER
+  documentNo      String?
+  referenceNo     String?
+  description     String         @db.Text
+  amount          Decimal        @db.Decimal(15, 2)
+  balanceAfter    Decimal        @db.Decimal(15, 2)
+  source          String?        // RECEIVABLE, PAYABLE, LOAN, REVENUE, DIRECT, CLOSING
+  departmentId    String?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  bankAccount     BankAccount    @relation(fields: [bankAccountId], references: [id])
+
+  @@index([bankAccountId])
+  @@index([transactionDate])
+  @@index([transactionType])
+  @@index([documentNo])
+}
+
+model BankStatement {
+  id              String      @id @default(cuid())
+  bankAccountId   String
+  statementDate   DateTime
+  valueDate       DateTime?
+  description     String      @db.Text
+  referenceNo     String?
+  debitAmount     Decimal     @default(0.00) @db.Decimal(15, 2)
+  creditAmount    Decimal     @default(0.00) @db.Decimal(15, 2)
+  balance         Decimal     @db.Decimal(15, 2)
+  status          String      @default("UNMATCHED") // UNMATCHED, MATCHED, ADJUSTED
+  matchedTxId     String?
+  importedAt      DateTime    @default(now())
+
+  bankAccount     BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([bankAccountId])
+  @@index([statementDate])
+  @@index([status])
+}
+
+model BankReconciliation {
+  id               String      @id @default(cuid())
+  bankAccountId    String
+  fiscalYear       Int
+  periodMonth      Int
+  systemBalance    Decimal     @db.Decimal(15, 2)
+  statementBalance Decimal     @db.Decimal(15, 2)
+  difference       Decimal     @db.Decimal(15, 2)
+  status           String      @default("PENDING") // PENDING, MATCHED, ADJUSTED
+  reconciledById   String?
+  reconciledAt     DateTime?
+  notes            String?     @db.Text
+  createdAt        DateTime    @default(now())
+
+  bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@unique([bankAccountId, fiscalYear, periodMonth])
+  @@index([bankAccountId])
+}
+
+model DailyClosing {
+  id             String    @id @default(cuid())
+  closingDate    DateTime  @unique
+  openingBalance Decimal   @db.Decimal(15, 2)
+  totalIncome    Decimal   @db.Decimal(15, 2)
+  totalExpense   Decimal   @db.Decimal(15, 2)
+  closingBalance Decimal   @db.Decimal(15, 2)
+  status         String    @default("CLOSED") // OPEN, CLOSED
+  closedById     String?
+  closedAt       DateTime  @default(now())
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+}
+
+model FiscalPeriod {
+  id           String    @id @default(cuid())
+  fiscalYear   Int
+  periodMonth  Int       // 1..12 (1 = Oct, 12 = Sep)
+  startDate    DateTime
+  endDate      DateTime
+  isClosed     Boolean   @default(false)
+  closedById   String?
+  closedAt     DateTime?
+  reopenedById String?
+  reopenedAt   DateTime?
+  reopenReason String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([fiscalYear, periodMonth])
+  @@index([fiscalYear])
+}
+
+// ------------------------------------------------------------
+// RECEIVABLES
+// ------------------------------------------------------------
+
+model Receivable {
+  id           String              @id @default(cuid())
+  receivableNo String              @unique // AR-2569-000001
+  documentNo   String?
+  debtorId     String
+  departmentId String?
+  category     String              // UC, SSS, CSMBS, PRIVATE, OTHER
+  billDate     DateTime
+  dueDate      DateTime
+  amount       Decimal             @db.Decimal(15, 2)
+  paidAmount   Decimal             @default(0.00) @db.Decimal(15, 2)
+  balance      Decimal             @db.Decimal(15, 2)
+  status       String              @default("OPEN") // OPEN, PARTIAL, OVERDUE, PAID, WRITEOFF
+  description  String?             @db.Text
+  createdById  String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  debtor       Debtor              @relation(fields: [debtorId], references: [id])
+  department   Department?         @relation(fields: [departmentId], references: [id])
+  payments     ReceivablePayment[]
+
+  @@index([debtorId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([billDate])
+  @@index([dueDate])
+}
+
+model ReceivablePayment {
+  id            String      @id @default(cuid())
+  receiptNo     String      @unique // RC-2569-000001
+  receivableId  String
+  paymentDate   DateTime
+  amount        Decimal     @db.Decimal(15, 2)
+  bankAccountId String
+  referenceNo   String?
+  paymentMethod String      @default("TRANSFER") // TRANSFER, CASH, CHEQUE
+  notes         String?     @db.Text
+  createdById   String?
+  createdAt     DateTime    @default(now())
+
+  receivable    Receivable  @relation(fields: [receivableId], references: [id], onDelete: Cascade)
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([receivableId])
+  @@index([bankAccountId])
+  @@index([paymentDate])
+}
+
+// ------------------------------------------------------------
+// PAYABLES & COMMITMENTS
+// ------------------------------------------------------------
+
+model Payable {
+  id            String           @id @default(cuid())
+  payableNo     String           @unique // AP-2569-000001
+  documentNo    String?
+  vendorId      String
+  departmentId  String?
+  fundId        String?
+  budgetId      String?
+  invoiceNo     String
+  invoiceDate   DateTime
+  dueDate       DateTime
+  amount        Decimal          @db.Decimal(15, 2)
+  paidAmount    Decimal          @default(0.00) @db.Decimal(15, 2)
+  balance       Decimal          @db.Decimal(15, 2)
+  status        String           @default("PENDING_DOCUMENT") // PENDING_DOCUMENT, READY_TO_PAY, WAITING_APPROVAL, APPROVED, PAID, OVERDUE
+  description   String?          @db.Text
+  createdById   String?
+  approvedById  String?
+  approvedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  vendor        Vendor           @relation(fields: [vendorId], references: [id])
+  department    Department?      @relation(fields: [departmentId], references: [id])
+  fund          Fund?            @relation(fields: [fundId], references: [id])
+  budget        Budget?          @relation(fields: [budgetId], references: [id])
+  payments      PayablePayment[]
+
+  @@index([vendorId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([invoiceDate])
+  @@index([dueDate])
+}
+
+model PayablePayment {
+  id               String      @id @default(cuid())
+  paymentVoucherNo String      @unique // PV-2569-000001
+  payableId        String
+  paymentDate      DateTime
+  amount           Decimal     @db.Decimal(15, 2)
+  bankAccountId    String
+  referenceNo      String?
+  paymentMethod    String      @default("TRANSFER")
+  notes            String?     @db.Text
+  createdById      String?
+  createdAt        DateTime    @default(now())
+
+  payable          Payable     @relation(fields: [payableId], references: [id], onDelete: Cascade)
+  bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([payableId])
+  @@index([bankAccountId])
+  @@index([paymentDate])
+}
+
+model Commitment {
+  id                  String      @id @default(cuid())
+  commitmentNo        String      @unique // CM-2569-000001
+  sourceDocument      String      // PO, CONTRACT, INSPECTION, SERVICE, ACCRUAL
+  departmentId        String?
+  vendorId            String?
+  description         String      @db.Text
+  amount              Decimal     @db.Decimal(15, 2)
+  expectedPaymentDate DateTime
+  status              String      @default("ACTIVE") // ACTIVE, LIQUIDATED, CANCELLED
+  createdById         String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  department          Department? @relation(fields: [departmentId], references: [id])
+  vendor              Vendor?     @relation(fields: [vendorId], references: [id])
+
+  @@index([departmentId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([expectedPaymentDate])
+}
+
+// ------------------------------------------------------------
+// GOVERNMENT LOAN
+// ------------------------------------------------------------
+
+model GovernmentLoan {
+  id             String           @id @default(cuid())
+  loanNo         String           @unique // LN-2569-000001
+  borrowerCode   String
+  borrowerName   String
+  departmentId   String?
+  purpose        String           @db.Text
+  requestDate    DateTime
+  approveDate    DateTime?
+  paymentDate    DateTime?
+  dueDate        DateTime
+  amount         Decimal          @db.Decimal(15, 2)
+  returnedAmount Decimal          @default(0.00) @db.Decimal(15, 2)
+  balance        Decimal          @db.Decimal(15, 2)
+  status         String           @default("DRAFT") // DRAFT, SUBMITTED, REVIEWED, APPROVED, PAID, OUTSTANDING, RETURNED, CLEARED, CLOSED
+  createdById    String?
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  department     Department?      @relation(fields: [departmentId], references: [id])
+  clearances     LoanClearance[]
+
+  @@index([departmentId])
+  @@index([borrowerCode])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model LoanClearance {
+  id                 String         @id @default(cuid())
+  clearanceNo        String         @unique // CL-2569-000001
+  loanId             String
+  clearanceDate      DateTime
+  expenseAmount      Decimal        @default(0.00) @db.Decimal(15, 2)
+  cashReturn         Decimal        @default(0.00) @db.Decimal(15, 2)
+  additionalPayment  Decimal        @default(0.00) @db.Decimal(15, 2)
+  documentReference  String?
+  notes              String?        @db.Text
+  status             String         @default("SUBMITTED") // SUBMITTED, APPROVED, REJECTED
+  createdById        String?
+  approvedById       String?
+  approvedAt         DateTime?
+  createdAt          DateTime       @default(now())
+
+  loan               GovernmentLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([loanId])
+  @@index([clearanceDate])
+  @@index([status])
+}
+
+// ------------------------------------------------------------
+// BUDGET & REVENUE
+// ------------------------------------------------------------
+
+model Budget {
+  id           String              @id @default(cuid())
+  fiscalYear   Int
+  fundId       String
+  programId    String?
+  projectId    String?
+  departmentId String
+  budgetCodeId String
+  budgetName   String
+  allocated    Decimal             @default(0.00) @db.Decimal(15, 2)
+  adjustment   Decimal             @default(0.00) @db.Decimal(15, 2)
+  committed    Decimal             @default(0.00) @db.Decimal(15, 2)
+  spent        Decimal             @default(0.00) @db.Decimal(15, 2)
+  available    Decimal             @default(0.00) @db.Decimal(15, 2)
+  createdById  String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  fund         Fund                @relation(fields: [fundId], references: [id])
+  program      Program?            @relation(fields: [programId], references: [id])
+  project      Project?            @relation(fields: [projectId], references: [id])
+  department   Department          @relation(fields: [departmentId], references: [id])
+  budgetCode   BudgetCode          @relation(fields: [budgetCodeId], references: [id])
+  payables     Payable[]
+  adjustments  BudgetAdjustment[]
+  transactions BudgetTransaction[]
+
+  @@unique([fiscalYear, fundId, departmentId, budgetCodeId])
+  @@index([fiscalYear])
+  @@index([fundId])
+  @@index([departmentId])
+  @@index([budgetCodeId])
+}
+
+model BudgetAdjustment {
+  id             String    @id @default(cuid())
+  budgetId       String
+  adjustmentDate DateTime
+  adjustmentType String    // INCREASE, DECREASE, TRANSFER_IN, TRANSFER_OUT
+  amount         Decimal   @db.Decimal(15, 2)
+  reason         String    @db.Text
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  budget         Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@index([adjustmentDate])
+}
+
+model BudgetTransaction {
+  id               String   @id @default(cuid())
+  budgetId         String
+  transactionType  String   // COMMITMENT, EXPENSE, ADJUSTMENT, RELEASE
+  amount           Decimal  @db.Decimal(15, 2)
+  referenceDocType String?  // PAYABLE, COMMITMENT, ADJUSTMENT
+  referenceDocId   String?
+  description      String?  @db.Text
+  createdById      String?
+  createdAt        DateTime @default(now())
+
+  budget           Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@index([createdAt])
+}
+
+model RevenueTransaction {
+  id            String      @id @default(cuid())
+  revenueDate   DateTime
+  fundId        String
+  source        String      // UC, SSS, CSMBS, FUND, DONATION, OTHER
+  departmentId  String?
+  documentNo    String?
+  amount        Decimal     @db.Decimal(15, 2)
+  description   String?     @db.Text
+  bankAccountId String?
+  createdById   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  fund          Fund        @relation(fields: [fundId], references: [id])
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  @@index([fundId])
+  @@index([revenueDate])
+  @@index([source])
+}
+
+// ------------------------------------------------------------
+// ATTACHMENTS, NOTIFICATIONS & AUDIT
+// ------------------------------------------------------------
+
+model Attachment {
+  id               String   @id @default(cuid())
+  entityType       String   // RECEIVABLE, PAYABLE, LOAN, COMMITMENT, BANK_TX, CLEARANCE
+  entityId         String
+  originalFilename String
+  storedFilename   String
+  filePath         String
+  mimeType         String
+  fileSize         Int
+  createdById      String?
+  createdAt        DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?  // null for broadcast to role/all
+  roleCode  String?
+  title     String
+  message   String   @db.Text
+  category  String   // RECEIVABLE, PAYABLE, LOAN, BUDGET, APPROVAL, BANK_REC, SYSTEM
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model ApprovalWorkflow {
+  id          String         @id @default(cuid())
+  entityType  String         // PAYABLE, LOAN, CLEARANCE, BUDGET_ADJUSTMENT
+  entityId    String
+  title       String
+  currentStep Int            @default(1)
+  totalSteps  Int            @default(3)
+  status      String         @default("SUBMITTED") // DRAFT, SUBMITTED, REVIEWED, APPROVED, REJECTED, CANCELLED
+  createdById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  steps       ApprovalStep[]
+
+  @@index([entityType, entityId])
+  @@index([status])
+}
+
+model ApprovalStep {
+  id           String           @id @default(cuid())
+  workflowId   String
+  stepNumber   Int
+  roleRequired String
+  action       String           // SUBMIT, REVIEW, APPROVE, REJECT
+  comment      String?          @db.Text
+  actionById   String?
+  ipAddress    String?
+  createdAt    DateTime         @default(now())
+
+  workflow     ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  username  String
+  role      String?
+  action    String   // CREATE, UPDATE, DELETE, APPROVE, REJECT, LOGIN, LOGOUT, EXPORT, PRINT, UPLOAD, DOWNLOAD, OPEN_PERIOD, CLOSE_PERIOD
+  module    String   // AUTH, CASH_BANK, RECEIVABLE, PAYABLE, LOAN, BUDGET, REVENUE, MASTER, USER
+  entity    String
+  entityId  String?
+  beforeData Json?
+  afterData  Json?
+  ipAddress String?
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([module])
+  @@index([action])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model DocumentSequence {
+  id            String   @id @default(cuid())
+  code          String   // AR, AP, LN, PV, RV, CM, RC, CL
+  prefix        String
+  fiscalYear    Int
+  currentNumber Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([code, fiscalYear])
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?
+  updatedAt   DateTime @updatedAt
+}
