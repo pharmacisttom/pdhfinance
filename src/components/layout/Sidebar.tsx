@@ -21,6 +21,8 @@ import {
   Building2,
   Users,
   LogOut,
+  FileText,
+  UploadCloud,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -76,6 +78,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           href: '/loans',
           icon: FileCheck2,
         },
+        {
+          name: 'นำเข้าข้อมูล (Excel)',
+          href: '/import',
+          icon: UploadCloud,
+        },
       ],
     },
     {
@@ -96,6 +103,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       title: 'รายงานและการตรวจสอบ',
       items: [
+        {
+          name: 'สรุปสาระสำคัญประจำเดือน',
+          href: '/monthly-summary',
+          icon: FileText,
+        },
         {
           name: 'ศูนย์รายงานการเงิน (16)',
           href: '/reports',
