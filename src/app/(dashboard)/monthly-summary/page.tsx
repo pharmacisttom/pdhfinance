@@ -99,18 +99,27 @@ export default function MonthlySummaryPage() {
     <div className="space-y-6">
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-        <div>
-          <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-[11px] font-bold mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#1687E8]" />
-            <span>รายงานสรุปสำหรับผู้บริหารและคณะกรรมการโรงพยาบาล (กวป.)</span>
+        <div className="flex items-start space-x-3.5">
+          <div className="w-12 h-12 rounded-xl bg-white p-1 border border-gray-200/80 shadow-xs flex items-center justify-center shrink-0">
+            <img
+              src="/img/pdh.png"
+              alt="PDH Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h2 className="text-xl font-bold text-[#08294F] flex items-center space-x-2">
-            <FileText className="w-6 h-6 text-[#1687E8]" />
-            <span>สรุปสาระสำคัญทางบัญชีในการบริหารเงินและงบประมาณประจำเดือน</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            โรงพยาบาลพหลพลพยุหเสนา | กลุ่มงานการเงินและบัญชี
-          </p>
+          <div>
+            <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-800 text-[11px] font-bold mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#1687E8]" />
+              <span>รายงานสรุปสำหรับผู้บริหารและคณะกรรมการโรงพยาบาล (กวป.)</span>
+            </div>
+            <h2 className="text-xl font-bold text-[#08294F] flex items-center space-x-2">
+              <FileText className="w-6 h-6 text-[#1687E8]" />
+              <span>สรุปสาระสำคัญทางบัญชีในการบริหารเงินและงบประมาณประจำเดือน</span>
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              โรงพยาบาลปลวกแดง • กลุ่มงานการเงินและบัญชี
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
@@ -151,15 +160,18 @@ export default function MonthlySummaryPage() {
       </div>
 
       {/* Official Printable Document Header (Appears in Print Mode) */}
-      <div className="hidden print:block text-center border-b-2 border-gray-800 pb-4 mb-6">
-        <div className="font-bold text-lg text-black">
-          รายงานสรุปสาระสำคัญทางบัญชีในการบริหารเงินและงบประมาณประจำเดือน
-        </div>
-        <div className="text-sm text-gray-800">
-          โรงพยาบาลพหลพลพยุหเสนา สำนักงานปลัดกระทรวงสาธารณสุข
-        </div>
-        <div className="text-xs text-gray-600 mt-1">
-          ประจำงวดเดือน {selectedMonth === '2024-09' ? 'กันยายน 2567' : selectedMonth} ปีงบประมาณ พ.ศ. {selectedYear}
+      <div className="hidden print:flex items-center justify-center space-x-4 border-b-2 border-gray-800 pb-4 mb-6">
+        <img src="/img/pdh.png" alt="PDH Logo" className="w-16 h-16 object-contain" />
+        <div className="text-center">
+          <div className="font-bold text-lg text-black">
+            รายงานสรุปสาระสำคัญทางบัญชีในการบริหารเงินและงบประมาณประจำเดือน
+          </div>
+          <div className="text-sm text-gray-800 font-semibold">
+            โรงพยาบาลปลวกแดง • กลุ่มงานการเงินและบัญชี สำนักงานปลัดกระทรวงสาธารณสุข
+          </div>
+          <div className="text-xs text-gray-600 mt-1">
+            ประจำงวดเดือน {selectedMonth === '2024-09' ? 'กันยายน 2567' : selectedMonth} ปีงบประมาณ พ.ศ. {selectedYear}
+          </div>
         </div>
       </div>
 

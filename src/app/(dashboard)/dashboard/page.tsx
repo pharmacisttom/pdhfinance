@@ -80,17 +80,26 @@ export default function DashboardPage() {
     <div className="space-y-8 pb-10">
       {/* Top Banner / Quick Action Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-[#08294F] via-[#0D3768] to-[#1687E8] p-6 rounded-2xl text-white shadow-lg shadow-[#08294F]/15">
-        <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 text-xs text-blue-200 font-medium mb-2 backdrop-blur-xs">
-            <span className="w-2 h-2 rounded-full bg-[#08A7A4] animate-pulse"></span>
-            <span>สถานะระบบการเงิน Real-time • ปีงบประมาณ 2569</span>
+        <div className="flex items-start space-x-4">
+          <div className="w-14 h-14 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-lg shadow-black/20 shrink-0">
+            <img
+              src="/img/pdh.png"
+              alt="PDH Hospital Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-            ภาพรวมการบริหารการเงิน โรงพยาบาลศูนย์
-          </h2>
-          <p className="text-xs sm:text-sm text-blue-100/80 mt-0.5">
-            สรุปยอดสภาพคล่อง หนี้สิน ภาระผูกพัน และการควบคุมวงเงินงบประมาณ
-          </p>
+          <div>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 text-xs text-blue-200 font-medium mb-1.5 backdrop-blur-xs">
+              <span className="w-2 h-2 rounded-full bg-[#08A7A4] animate-pulse"></span>
+              <span>สถานะระบบการเงิน Real-time • ปีงบประมาณ 2569</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              ภาพรวมการบริหารการเงิน โรงพยาบาลปลวกแดง
+            </h2>
+            <p className="text-xs sm:text-sm text-blue-100/80 mt-0.5">
+              กลุ่มงานการเงินและบัญชี • สรุปยอดสภาพคล่อง หนี้สิน ภาระผูกพัน และงบประมาณ
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">

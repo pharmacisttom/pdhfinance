@@ -159,17 +159,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         } border-r border-[#0D3768] shadow-sidebar`}
       >
         {/* Brand Header */}
-        <div className="h-20 px-6 flex items-center justify-between border-b border-white/10 bg-[#061E3B]">
+        <div className="h-20 px-5 flex items-center justify-between border-b border-white/10 bg-[#061E3B]">
           <Link href="/dashboard" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1687E8] to-[#08A7A4] flex items-center justify-center shadow-lg shadow-[#1687E8]/20 group-hover:scale-105 transition-transform">
-              <Landmark className="w-5 h-5 text-white" />
+            <div className="w-11 h-11 rounded-xl bg-white p-1 flex items-center justify-center shadow-lg shadow-black/20 group-hover:scale-105 transition-transform shrink-0">
+              <img
+                src="/img/pdh.png"
+                alt="PDH Hospital Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div>
-              <div className="font-bold text-sm tracking-wide text-white leading-tight">
-                FINANCE CONTROL
+            <div className="min-w-0">
+              <div className="font-bold text-sm tracking-wide text-white leading-tight truncate">
+                กลุ่มงานการเงินและบัญชี
               </div>
-              <div className="text-[11px] text-blue-300 font-medium">
-                ระบบบริหารการเงินภาครัฐ
+              <div className="text-[11px] text-blue-300 font-medium truncate">
+                รพ.ปลวกแดง
               </div>
             </div>
           </Link>

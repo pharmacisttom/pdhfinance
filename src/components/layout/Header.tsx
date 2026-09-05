@@ -72,17 +72,28 @@ export default function Header({ onToggleSidebar, onOpenSearch }: HeaderProps) {
           <Menu className="w-6 h-6" />
         </button>
 
-        <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#08294F] flex items-center space-x-2">
-            <span>{getPageTitle(pathname)}</span>
-          </h1>
-          <div className="flex items-center space-x-3 text-xs text-gray-500 mt-0.5">
-            <span className="flex items-center space-x-1">
-              <Calendar className="w-3.5 h-3.5 text-[#1687E8]" />
-              <span>{currentTime ? formatThaiDate(currentTime, { shortMonth: true }) : '-'}</span>
-            </span>
-            <span>•</span>
-            <span className="text-[#08A7A4] font-medium">โรงพยาบาลศูนย์ / MOPH</span>
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-white p-1 border border-gray-200/80 shadow-xs flex items-center justify-center shrink-0">
+            <img
+              src="/img/pdh.png"
+              alt="PDH Logo"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-[#08294F] flex items-center space-x-2">
+              <span>{getPageTitle(pathname)}</span>
+            </h1>
+            <div className="flex items-center space-x-2 sm:space-x-3 text-xs text-gray-500 mt-0.5 flex-wrap">
+              <span className="flex items-center space-x-1">
+                <Calendar className="w-3.5 h-3.5 text-[#1687E8]" />
+                <span>{currentTime ? formatThaiDate(currentTime, { shortMonth: true }) : '-'}</span>
+              </span>
+              <span>•</span>
+              <span className="text-[#08A7A4] font-semibold">โรงพยาบาลปลวกแดง</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-gray-500">กลุ่มงานการเงินและบัญชี</span>
+            </div>
           </div>
         </div>
       </div>

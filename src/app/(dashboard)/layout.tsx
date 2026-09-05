@@ -36,7 +36,18 @@ export default function DashboardLayout({
 
         {/* System Footer */}
         <footer className="py-4 px-6 text-center text-xs text-gray-500 border-t border-gray-200/60 bg-white/50">
-          ระบบบริหารการเงิน งบประมาณ ลูกหนี้ เจ้าหนี้ และเงินยืม (FINANCE CONTROL PLATFORM) • มาตรฐานการเงินโรงพยาบาล & ภาครัฐ
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
+            <div>
+              ระบบบริหารการเงิน งบประมาณ ลูกหนี้ เจ้าหนี้ และเงินยืม (FINANCE CONTROL PLATFORM) • กลุ่มงานการเงินและบัญชี โรงพยาบาลปลวกแดง
+            </div>
+            <div className="flex items-center space-x-2 text-gray-600">
+              <span className="font-semibold text-cyan-800 bg-cyan-50 px-2.5 py-0.5 rounded-md border border-cyan-200/70">
+                Version 2026.09.05
+              </span>
+              <span>•</span>
+              <span className="font-medium">ระบบนี้พัฒนาโดย Tomvis และสงวนสิทธิ์ทางกฎหมาย</span>
+            </div>
+          </div>
         </footer>
       </div>
 

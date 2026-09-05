@@ -211,8 +211,20 @@ export default function ReportsPage() {
         <div className="card-soft p-6 lg:col-span-3 printable-area">
           {/* Official Report Header */}
           <div className="text-center pb-6 border-b border-gray-200">
-            <div className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-              โรงพยาบาลศูนย์ • กระทรวงสาธารณสุข
+            <div className="flex items-center justify-center space-x-3 mb-2">
+              <img
+                src="/img/pdh.png"
+                alt="PDH Logo"
+                className="w-12 h-12 object-contain"
+              />
+              <div className="text-left">
+                <div className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                  โรงพยาบาลปลวกแดง
+                </div>
+                <div className="text-xs text-[#08A7A4] font-semibold">
+                  กลุ่มงานการเงินและบัญชี • กระทรวงสาธารณสุข
+                </div>
+              </div>
             </div>
             <h3 className="text-lg font-bold text-[#08294F] mt-1">
               {currentReportObj?.title}

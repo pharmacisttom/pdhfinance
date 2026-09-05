@@ -629,8 +629,17 @@ export default function ReceivablesPage() {
             {/* Printable Receipt Card */}
             <div className="my-5 p-5 bg-gray-50 border border-gray-200 rounded-xl space-y-3 font-sans">
               <div className="text-center pb-3 border-b border-gray-200">
-                <div className="font-bold text-sm text-[#08294F]">ใบเสร็จรับเงิน / ใบสำคัญรับเงิน</div>
-                <div className="text-xs text-gray-500">โรงพยาบาลศูนย์ • กระทรวงสาธารณสุข</div>
+                <div className="flex items-center justify-center space-x-2.5 mb-1.5">
+                  <img
+                    src="/img/pdh.png"
+                    alt="PDH Logo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <div className="text-left">
+                    <div className="font-bold text-sm text-[#08294F]">ใบเสร็จรับเงิน / ใบสำคัญรับเงิน</div>
+                    <div className="text-[11px] text-gray-500">โรงพยาบาลปลวกแดง • กลุ่มงานการเงินและบัญชี</div>
+                  </div>
+                </div>
                 <div className="text-xs font-mono font-bold text-[#1687E8] mt-1">
                   เลขที่: {lastReceipt.receiptNo}
                 </div>

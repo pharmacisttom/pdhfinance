@@ -89,26 +89,31 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F8FC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-white via-cyan-50/50 to-blue-100/60 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         {/* Brand Header */}
         <div className="flex justify-center">
-          <Link href="/" className="inline-flex items-center space-x-3 group">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#08294F] via-[#0D3768] to-[#1687E8] flex items-center justify-center shadow-xl shadow-[#08294F]/20 group-hover:scale-105 transition-transform">
-              <Landmark className="w-8 h-8 text-white" />
+          <Link href="/" className="inline-flex flex-col items-center space-y-2 group" title="กลับสู่หน้าหลัก">
+            <div className="w-24 h-24 rounded-2xl bg-white p-2 flex items-center justify-center shadow-xl shadow-cyan-950/10 border border-cyan-100 ring-2 ring-emerald-500/20 group-hover:scale-105 group-hover:ring-cyan-400 transition-all duration-300">
+              <img
+                src="/img/pdh.png"
+                alt="แผนกการเงิน โรงพยาบาลปลวกแดง"
+                className="w-full h-full object-contain"
+              />
             </div>
           </Link>
         </div>
 
         <h2 className="mt-4 text-center text-2xl font-bold tracking-tight text-[#08294F]">
-          FINANCE CONTROL PLATFORM
+          ระบบบริหารการเงิน
         </h2>
-        <p className="mt-1 text-center text-sm text-gray-600">
-          ระบบบริหารการเงิน งบประมาณ ลูกหนี้ เจ้าหนี้ และเงินยืม
+        <p className="mt-0.5 text-center text-lg font-bold text-[#08A7A4]">
+          โรงพยาบาลปลวกแดง
         </p>
-        <div className="mt-2 text-center inline-flex items-center justify-center w-full space-x-1 text-xs text-blue-700 font-medium">
-          <Building className="w-3.5 h-3.5" />
-          <span>หน่วยงานการเงินและบัญชี โรงพยาบาลศูนย์</span>
+        <div className="mt-1 flex items-center justify-center space-x-1.5 text-[11px] font-semibold tracking-wider text-cyan-800 uppercase">
+          <span>FINANCE MANAGEMENT SYSTEM</span>
+          <span className="text-amber-500 font-bold">•</span>
+          <span>PLUAKDAENG HOSPITAL</span>
         </div>
       </div>
 
@@ -287,9 +292,16 @@ export default function LoginPage() {
         </div>
 
         {/* Security & PDPA notice */}
-        <div className="mt-6 text-center text-xs text-gray-500 flex items-center justify-center space-x-2">
-          <ShieldCheck className="w-4 h-4 text-[#08A7A4]" />
-          <span>ระบบรักษาความปลอดภัยตามมาตรฐาน PDPA & OWASP</span>
+        <div className="mt-6 text-center text-xs text-gray-500 flex flex-col items-center justify-center space-y-1.5">
+          <div className="flex items-center space-x-2">
+            <ShieldCheck className="w-4 h-4 text-[#08A7A4]" />
+            <span>ระบบรักษาความปลอดภัยตามมาตรฐาน PDPA & OWASP</span>
+          </div>
+          <div className="text-[11px] text-gray-500 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="font-semibold text-cyan-800 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/60">Version 2026.09.05</span>
+            <span>•</span>
+            <span>ระบบนี้พัฒนาโดย Tomvis และสงวนสิทธิ์ทางกฎหมาย</span>
+          </div>
         </div>
       </div>
 
