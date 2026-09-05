@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { store } from '@/lib/data-store';
+import { alertSuccess, alertWarning, showToast } from '@/lib/sweetalert';
 
 type MasterTab = 'PROFILE' | 'DEPT' | 'FUND' | 'BUDGET_CODE' | 'PAYER' | 'VENDOR' | 'BANK' | 'RULES';
 
@@ -131,20 +132,19 @@ export default function MasterDataPage() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaveSuccessMessage('บันทึกข้อมูลหน่วยงานและข้อมูลทั่วไปสำเร็จเรียบร้อยแล้ว');
-    setTimeout(() => setSaveSuccessMessage(null), 3000);
+    alertSuccess('บันทึกข้อมูลหน่วยงานสำเร็จ', 'ข้อมูลองค์กรและหัวหน้างานได้รับการปรับปรุงเรียบร้อยแล้ว');
   };
 
   const handleSaveRules = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaveSuccessMessage('บันทึกการตั้งค่านโยบายและพารามิเตอร์ทางการเงินสำเร็จเรียบร้อยแล้ว');
-    setTimeout(() => setSaveSuccessMessage(null), 3000);
+    alertSuccess('บันทึกการตั้งค่าสำเร็จ', 'นโยบายและพารามิเตอร์ทางการเงินมีผลบังคับใช้ในระบบทันที');
   };
 
   const handleToggleStatus = (listSetter: any, id: string) => {
     listSetter((prev: any[]) =>
       prev.map((item) => (item.id === id ? { ...item, active: !item.active } : item))
     );
+    showToast('ปรับปรุงสถานะการใช้งานเรียบร้อยแล้ว', 'success');
   };
 
   const handleExportMaster = () => {
@@ -169,12 +169,13 @@ export default function MasterDataPage() {
     XLSX.utils.book_append_sheet(wb, bankWs, 'บัญชีธนาคาร');
 
     XLSX.writeFile(wb, 'Hospital_Master_Data_Export.xlsx');
+    showToast('ส่งออกข้อมูลหลักเป็นไฟล์ Excel สำเร็จ', 'success');
   };
 
   const handleAddNewRecord = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRecord.code || !newRecord.name) {
-      alert('กรุณาระบุรหัสและชื่อรายการ');
+      alertWarning('กรุณากรอกข้อมูลให้ครบถ้วน', 'โปรดระบุรหัสและชื่อรายการก่อนบันทึก');
       return;
     }
 
@@ -195,9 +196,8 @@ export default function MasterDataPage() {
     }
 
     setShowAddModal(false);
+    alertSuccess('เพิ่มรายการใหม่สำเร็จ!', `เพิ่มข้อมูล ${newRecord.name} (${newRecord.code}) เข้าสู่ระบบเรียบร้อย`);
     setNewRecord({ code: '', name: '', type: '', extra: '' });
-    setSaveSuccessMessage('เพิ่มรายการใหม่สำเร็จ');
-    setTimeout(() => setSaveSuccessMessage(null), 3000);
   };
 
   return (

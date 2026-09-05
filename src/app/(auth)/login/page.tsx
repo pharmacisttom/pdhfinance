@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Building,
 } from 'lucide-react';
+import { alertError, alertWarning, alertInfo, showToast } from '@/lib/sweetalert';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function LoginPage() {
     if (failedAttempts >= 3) {
       if (parseInt(captchaAnswer, 10) !== captchaChallenge.num1 + captchaChallenge.num2) {
         setError('รหัสยืนยันความปลอดภัย (CAPTCHA) ไม่ถูกต้อง');
+        alertWarning('รหัสยืนยันความปลอดภัย (CAPTCHA) ไม่ถูกต้อง', 'กรุณาคำนวณผลลัพธ์ของโจทย์เลขให้ถูกต้อง');
         return;
       }
     }
@@ -63,9 +65,12 @@ export default function LoginPage() {
             num2: Math.floor(Math.random() * 8) + 1,
           });
         }
-        throw new Error(result.error?.message || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
+        const errorMsg = result.error?.message || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง';
+        alertError('เข้าสู่ระบบไม่สำเร็จ', errorMsg);
+        throw new Error(errorMsg);
       }
 
+      showToast('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับสู่ระบบบริหารการเงิน', 'success');
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (err: any) {

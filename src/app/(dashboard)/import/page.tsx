@@ -22,6 +22,7 @@ import {
   Building,
 } from 'lucide-react';
 import { EXCEL_TEMPLATES, generateExcelTemplate } from '@/lib/excel-templates';
+import { alertSuccess, alertError, alertWarning, confirmAction, showToast } from '@/lib/sweetalert';
 
 interface ParsedRow {
   rowIndex: number;
@@ -79,7 +80,7 @@ export default function ImportPage() {
     const validExtensions = ['.xlsx', '.xls', '.csv'];
     const hasValidExt = validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
     if (!hasValidExt) {
-      alert('กรุณาอัปโหลดไฟล์ Excel (.xlsx, .xls) หรือ .csv เท่านั้น');
+      alertWarning('รูปแบบไฟล์ไม่ถูกต้อง', 'กรุณาอัปโหลดไฟล์ Excel (.xlsx, .xls) หรือ .csv เท่านั้น');
       return;
     }
 
@@ -98,8 +99,9 @@ export default function ImportPage() {
         const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         validateAndFormatRows(rawJson);
+        showToast('อ่านและตรวจสอบข้อมูลในไฟล์เรียบร้อยแล้ว', 'info');
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบความถูกต้องของโครงสร้างไฟล์');
+        alertError('อ่านไฟล์ไม่สำเร็จ', 'เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบความถูกต้องของโครงสร้างไฟล์');
       } finally {
         setIsProcessing(false);
       }
@@ -149,12 +151,22 @@ export default function ImportPage() {
   };
 
   // Handle Commit Import
-  const handleCommitImport = () => {
+  const handleCommitImport = async () => {
     const validRows = parsedRows.filter((r) => r.isValid);
     if (validRows.length === 0) {
-      alert('ไม่มีรายการที่ผ่านการตรวจสอบ กรุณาแก้ไขข้อผิดพลาดในไฟล์ก่อนนำเข้า');
+      alertWarning('ไม่มีรายการที่ผ่านการตรวจสอบ', 'กรุณาแก้ไขข้อผิดพลาดในไฟล์ก่อนนำเข้าข้อมูลสู่ระบบ');
       return;
     }
+
+    const confirmed = await confirmAction({
+      title: `ยืนยันนำเข้าข้อมูล ${validRows.length} รายการ?`,
+      text: `ข้อมูลจะถูกตรวจสอบและบันทึกเข้าสู่โมดูล: ${currentTemplate?.name}`,
+      confirmButtonText: 'ยืนยันนำเข้าข้อมูล',
+      cancelButtonText: 'ตรวจสอบอีกครั้ง',
+      icon: 'question',
+    });
+
+    if (!confirmed) return;
 
     // Calculate total amount if amount field exists
     let total = 0;
@@ -164,10 +176,19 @@ export default function ImportPage() {
       }
     });
 
+    const batchNo = Math.floor(100000 + Math.random() * 900000);
+
     setImportSuccess({
       count: validRows.length,
       totalAmount: total,
     });
+
+    alertSuccess(
+      'นำเข้าข้อมูลสำเร็จสมบูรณ์!',
+      `บันทึกข้อมูลเข้าสู่ระบบเรียบร้อยแล้วจำนวน ${validRows.length} รายการ (Batch #${batchNo}) ${
+        total > 0 ? `ยอดเงินรวม: ฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}` : ''
+      }`
+    );
   };
 
   const handleReset = () => {
